@@ -73,14 +73,14 @@ def train_initialize_data(filename):
     return df, norm_dic
 
 
-def train_normalized(df, norm_theta0, norm_theta1, norm_dic, learning_rate=0.00001, evolution=False):
-    iterations = 10000
+def train_normalized(df, norm_theta0, norm_theta1, norm_dic, learning_rate=0.1, evolution=False):
+    iterations = 8000
     for i in range(iterations):
         norm_theta0, norm_theta1 = gradient_descent_step(norm_theta0, norm_theta1, learning_rate, df)
         if evolution:
-            if i == iterations // 10:
+            if i % (iterations // 10) == 0:
                 theta0, theta1 = denormalize_thetas(norm_theta0, norm_theta1, norm_dic)
-                plot.lr_plot(True, theta0, theta1)
+                plot.lr_plot(theta0, theta1, True)
     return norm_theta0, norm_theta1
 
 
