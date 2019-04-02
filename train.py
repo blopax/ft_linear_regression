@@ -73,14 +73,20 @@ def train_initialize_data(filename):
     return df, norm_dic
 
 
-def train_normalized(df, norm_theta0, norm_theta1, norm_dic, learning_rate=0.1, evolution=False):
-    iterations = 8000
+def train_normalized(df, norm_theta0, norm_theta1, norm_dic, args):
+    iterations = args.iterations
+    cost_list = []
     for i in range(iterations):
-        norm_theta0, norm_theta1 = gradient_descent_step(norm_theta0, norm_theta1, learning_rate, df)
-        if evolution:
-            if i % (iterations // 10) == 0:
-                theta0, theta1 = denormalize_thetas(norm_theta0, norm_theta1, norm_dic)
-                plot.lr_plot(theta0, theta1, True)
+        norm_theta0, norm_theta1 = gradient_descent_step(norm_theta0, norm_theta1, args.learning_rate, df)
+        theta0, theta1 = denormalize_thetas(norm_theta0, norm_theta1, norm_dic)
+        cost_list.append(get_cost(df, theta0, theta1))
+        if len(cost_list) > 2 and (cost_list[-2] - cost_list[-1]) / cost_list[-2] < args.stop:
+            break
+        if args.evolution and i % (iterations // 5) == 0:
+            plot.lr_plot(theta0, theta1, True)
+    print("Training stopped after {} iterations.".format(i))
+    if args.show_cost:
+        plot.cost_plot(cost_list)
     return norm_theta0, norm_theta1
 
 
@@ -107,7 +113,7 @@ def denormalize_thetas(norm_theta0, norm_theta1, norm_dic):
     return theta0, theta1
 
 
-def train(filename, learning_rate=0.001, evolution=False):
+def train(filename, args):
     df, norm_dic = train_initialize_data(filename)
     if df is None:
         print("No data.\n")
@@ -120,8 +126,7 @@ def train(filename, learning_rate=0.001, evolution=False):
         return None, None
     theta0, theta1 = parameters.get_parameters()
     norm_theta0, norm_theta1 = normalize_thetas(theta0, theta1, norm_dic)
-    norm_theta0, norm_theta1 = train_normalized(df, norm_theta0, norm_theta1, norm_dic,
-                                                learning_rate=learning_rate, evolution=evolution)
+    norm_theta0, norm_theta1 = train_normalized(df, norm_theta0, norm_theta1, norm_dic, args)
     theta0, theta1 = denormalize_thetas(norm_theta0, norm_theta1, norm_dic)
     return theta0, theta1
 
@@ -132,11 +137,15 @@ def get_args():
                         help="Reinitialize everything without training\n")
     parser.add_argument("-b", "--theta0", type=float, help="Set theta0\n")
     parser.add_argument("-a", "--theta1", type=float, help="Set theta1\n")
-
+    parser.add_argument("-i", "--iterations", type=float, default=10000,
+                        help="Choose the learning rate.\n")
+    parser.add_argument("-s", "--stop", type=float, default=0.00001,
+                        help="Stop when cost function evolution lower than.\n")
     parser.add_argument("-l", "--learning_rate", type=float, default=0.001,
                         help="Choose the learning rate.\n")
     parser.add_argument("-v", "--visualization", action="store_true", help="Show plot and fit line.\n")
     parser.add_argument("-e", "--evolution", action="store_true", help="Show how the plot evolve during learning.\n")
+    parser.add_argument("-c", "--show_cost", action="store_true", help="Show cost function.\n")
 
     return parser.parse_args()
 
@@ -146,14 +155,15 @@ if __name__ == "__main__":
     filepath = 'data.csv'
     if options.reinitialize:
         parameters.delete()
+        print("theta0 and theta1 were reinitialized.")
     else:
         if options.theta0:
             parameters.initialize(theta0=options.theta0)
         if options.theta1:
             parameters.initialize(theta1=options.theta1)
-        t0, t1 = train(filepath, options.learning_rate, options.evolution)
+        t0, t1 = train(filepath, options) # options.learning_rate, options.evolution, options.cost)
         if t0 is not None and t1 is not None:
             parameters.initialize(t0, t1)
-            print(t0, t1, get_cost(get_df(filepath), t0, t1))
+            print("theta0 = {}\ntheta1 = {}".format(t0, t1))
             if options.visualization:
                 plot.lr_plot()

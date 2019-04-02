@@ -34,6 +34,8 @@ def predict_display(ask_budget=False, non_stop=True):
         elif len(set(user_input)) > 0 and set(user_input).issubset({'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}):
             if not ask_budget:
                 price = predict(int(user_input))
+                if price < 0:
+                    price = 0
                 print("The estimated price of your car is: {} euros.".format(int(price)))
             else:
                 km = define_expected_km_for_budget((int(user_input)))
@@ -57,6 +59,7 @@ def get_args():
 
 if __name__ == '__main__':
     options = get_args()
-    predict_display(options.budget, options.interactive)
     if options.visualization:
-        plot.lr_plot(show_line=False)
+        plot.lr_plot(show_line=True)
+    else:
+        predict_display(options.budget, options.interactive)
