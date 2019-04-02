@@ -7,7 +7,7 @@ import plot
 def predict(mileage, theta0=None, theta1=None):
     if not theta0 or not theta1:
         theta0, theta1 = parameters.get_parameters()
-    prediction = int(theta0 + theta1 * mileage)
+    prediction = theta0 + theta1 * mileage
     return prediction
 
 
@@ -34,7 +34,7 @@ def predict_display(ask_budget=False, non_stop=True):
         elif len(set(user_input)) > 0 and set(user_input).issubset({'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}):
             if not ask_budget:
                 price = predict(int(user_input))
-                print("The estimated price of your car is: {} euros.".format(price))
+                print("The estimated price of your car is: {} euros.".format(int(price)))
             else:
                 km = define_expected_km_for_budget((int(user_input)))
                 if km is None:
