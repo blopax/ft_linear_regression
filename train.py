@@ -76,6 +76,7 @@ def train_initialize_data(filename):
 def train_normalized(df, norm_theta0, norm_theta1, norm_dic, args):
     iterations = args.iterations
     cost_list = []
+    i = 0
     for i in range(iterations):
         norm_theta0, norm_theta1 = gradient_descent_step(norm_theta0, norm_theta1, args.learning_rate, df)
         theta0, theta1 = denormalize_thetas(norm_theta0, norm_theta1, norm_dic)
@@ -151,19 +152,22 @@ def get_args():
 
 
 if __name__ == "__main__":
-    options = get_args()
-    filepath = 'data.csv'
-    if options.reinitialize:
-        parameters.delete()
-        print("theta0 and theta1 were reinitialized.")
-    else:
-        if options.theta0:
-            parameters.initialize(theta0=options.theta0)
-        if options.theta1:
-            parameters.initialize(theta1=options.theta1)
-        t0, t1 = train(filepath, options) # options.learning_rate, options.evolution, options.cost)
-        if t0 is not None and t1 is not None:
-            parameters.initialize(t0, t1)
-            print("theta0 = {}\ntheta1 = {}".format(t0, t1))
-            if options.visualization:
-                plot.lr_plot()
+    try:
+        options = get_args()
+        filepath = 'data.csv'
+        if options.reinitialize:
+            parameters.delete()
+            print("theta0 and theta1 were reinitialized.")
+        else:
+            if options.theta0:
+                parameters.initialize(theta0=options.theta0)
+            if options.theta1:
+                parameters.initialize(theta1=options.theta1)
+            t0, t1 = train(filepath, options)
+            if t0 is not None and t1 is not None:
+                parameters.initialize(t0, t1)
+                print("theta0 = {}\ntheta1 = {}".format(t0, t1))
+                if options.visualization:
+                    plot.lr_plot()
+    except Exception as error:
+        print("An error occured: {}".format(error))
